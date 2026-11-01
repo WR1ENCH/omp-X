@@ -1,8 +1,10 @@
 # omp GUI 蓝图（Rust + iced 原生桌面版）
 
+> **2026-11-01 修订**：§2（iced 选型）与 §9（不做内置终端/WebView）已被推翻，UI 栈改为 **Tauri 2 + React**（内置终端 + 网页预览为硬需求）。权威文档：`docs/superpowers/specs/2026-11-01-omp-x-frontend-design.md`（§0 有逐条修订对照）。§0 协议实测事实、§3 host 分层、§4 主机层四件事、§6 里程碑顺序、§7 安全约束继续有效。M1 实现计划：`docs/superpowers/plans/2026-11-01-m1-host.md`。
+
 给 [omp（Oh My Pi）](https://github.com/can1357/oh-my-pi) 做图形界面外壳的设计与选型。
 
-**已定**：UI 层锁定 **Rust + iced**，不复用 Web UI，不用 WebView / Electron / Tauri。
+**已定**：UI 层锁定 **Rust + iced**，不复用 Web UI，不用 WebView / Electron / Tauri。（⚠️ 见上方修订注：此行已过时）
 
 三条前置结论：
 
