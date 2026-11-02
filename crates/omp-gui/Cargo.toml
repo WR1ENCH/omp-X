@@ -1,0 +1,16 @@
+[package]
+name = "omp-gui"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "omp-gui"
+path = "src/main.rs"
+
+[dependencies]
+omp-host = { path = "../omp-host" }
+omp-protocol = { path = "../omp-protocol" }
+tokio = { workspace = true }
+clap = { workspace = true }
+anyhow = { workspace = true }
+serde_json = { workspace = true }
