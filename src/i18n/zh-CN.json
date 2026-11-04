@@ -1,0 +1,85 @@
+{
+  "rail": {
+    "sessions": "会话",
+    "worktrees": "工作树",
+    "agents": "智能体",
+    "tools": "工具",
+    "settings": "设置",
+    "help": "帮助",
+    "debug": "调试"
+  },
+  "sidebar": {
+    "sessions": {
+      "title": "会话",
+      "empty": "暂无活动会话",
+      "new": "新建会话"
+    },
+    "worktrees": {
+      "title": "工作树",
+      "empty": "暂无工作树",
+      "create": "创建工作树",
+      "delete": "删除"
+    },
+    "agents": {
+      "title": "智能体",
+      "empty": "暂未配置智能体"
+    },
+    "tools": {
+      "title": "工具",
+      "empty": "暂无可用工具"
+    },
+    "settings": {
+      "title": "设置",
+      "general": "通用",
+      "appearance": "外观",
+      "keyboard": "键盘",
+      "advanced": "高级"
+    },
+    "help": {
+      "title": "帮助",
+      "documentation": "文档",
+      "shortcuts": "快捷键",
+      "reportIssue": "反馈问题",
+      "about": "关于"
+    },
+    "debug": {
+      "title": "调试",
+      "logs": "日志",
+      "inspect": "检查",
+      "clear": "清空"
+    }
+  },
+  "dock": {
+    "preview": "预览",
+    "terminal": "终端",
+    "diff": "差异",
+    "worktree": "工作树"
+  },
+  "composer": {
+    "placeholder": "输入消息...",
+    "send": "发送",
+    "attach": "附件",
+    "voice": "语音"
+  },
+  "approval": {
+    "toolCall": "工具调用",
+    "diff": "代码变更",
+    "command": "命令",
+    "confirm": "确认",
+    "deny": "拒绝",
+    "details": "详情"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "retry": "重试",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "close": "关闭",
+    "expand": "展开",
+    "collapse": "折叠"
+  }
+}

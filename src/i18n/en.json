@@ -1,0 +1,85 @@
+{
+  "rail": {
+    "sessions": "Sessions",
+    "worktrees": "Worktrees",
+    "agents": "Agents",
+    "tools": "Tools",
+    "settings": "Settings",
+    "help": "Help",
+    "debug": "Debug"
+  },
+  "sidebar": {
+    "sessions": {
+      "title": "Sessions",
+      "empty": "No active sessions",
+      "new": "New Session"
+    },
+    "worktrees": {
+      "title": "Worktrees",
+      "empty": "No worktrees",
+      "create": "Create Worktree",
+      "delete": "Delete"
+    },
+    "agents": {
+      "title": "Agents",
+      "empty": "No agents configured"
+    },
+    "tools": {
+      "title": "Tools",
+      "empty": "No tools available"
+    },
+    "settings": {
+      "title": "Settings",
+      "general": "General",
+      "appearance": "Appearance",
+      "keyboard": "Keyboard",
+      "advanced": "Advanced"
+    },
+    "help": {
+      "title": "Help",
+      "documentation": "Documentation",
+      "shortcuts": "Keyboard Shortcuts",
+      "reportIssue": "Report Issue",
+      "about": "About"
+    },
+    "debug": {
+      "title": "Debug",
+      "logs": "Logs",
+      "inspect": "Inspect",
+      "clear": "Clear"
+    }
+  },
+  "dock": {
+    "preview": "Preview",
+    "terminal": "Terminal",
+    "diff": "Diff",
+    "worktree": "Worktree"
+  },
+  "composer": {
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "attach": "Attach",
+    "voice": "Voice"
+  },
+  "approval": {
+    "toolCall": "Tool Call",
+    "diff": "Code Change",
+    "command": "Command",
+    "confirm": "Confirm",
+    "deny": "Deny",
+    "details": "Details"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  }
+}
