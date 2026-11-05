@@ -1,13 +1,27 @@
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Plus } from 'lucide-react'
+import { ChevronLeft, Plus, MessageSquare, X } from 'lucide-react'
 import { useLayoutState } from '@/hooks/useLayoutState'
 import { cn } from '@/lib/utils'
 
 interface SidebarProps {
   onResize?: (width: number) => void
+  onSessionSelect?: (sessionId: string | null) => void
 }
 
-export function Sidebar({ onResize }: SidebarProps) {
+interface Session {
+  id: string
+  title: string
+  updatedAt: number
+  active: boolean
+}
+
+const MOCK_SESSIONS: Session[] = [
+  { id: '1', title: 'Fix auth bug', updatedAt: Date.now() - 1000 * 60 * 5, active: true },
+  { id: '2', title: 'Refactor dashboard', updatedAt: Date.now() - 1000 * 60 * 60 * 2, active: false },
+  { id: '3', title: 'Add tests', updatedAt: Date.now() - 1000 * 60 * 60 * 24, active: false },
+]
+
+export function Sidebar({ onResize, onSessionSelect }: SidebarProps) {
   const { t } = useTranslation()
   const { railView, sidebarCollapsed, sidebarWidth, setSidebarWidth, toggleSidebar } = useLayoutState()
 
@@ -28,8 +42,24 @@ export function Sidebar({ onResize }: SidebarProps) {
                 <Plus size={16} />
               </button>
             </div>
-            <div className="text-[var(--fg-muted)] text-sm text-center py-8">
-              {t('sidebar.sessions.empty')}
+            <div className="space-y-1">
+              {MOCK_SESSIONS.map((session) => (
+                <button
+                  key={session.id}
+                  onClick={() => onSessionSelect?.(session.id)}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-sm',
+                    'transition-colors',
+                    session.active
+                      ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
+                      : 'hover:bg-[var(--bg-hover)] text-[var(--fg-secondary)]'
+                  )}
+                >
+                  <MessageSquare size={14} />
+                  <span className="flex-1 truncate">{session.title}</span>
+                  {session.active && <X size={12} className="text-[var(--accent)] opacity-50" />}
+                </button>
+              ))}
             </div>
           </div>
         )

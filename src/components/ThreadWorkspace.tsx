@@ -1,9 +1,11 @@
-import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { Transcript } from './transcript/Transcript'
 
-export function ThreadWorkspace() {
-  const { t } = useTranslation()
+interface ThreadWorkspaceProps {
+  sessionId: string | null
+}
 
+export function ThreadWorkspace({ sessionId }: ThreadWorkspaceProps) {
   return (
     <main
       className={cn(
@@ -15,16 +17,7 @@ export function ThreadWorkspace() {
       role="main"
       aria-label="Thread workspace"
     >
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center p-8">
-          <div className="text-2xl font-medium text-[var(--fg-primary)] mb-2">
-            {t('sidebar.sessions.title')} + {t('composer.placeholder')}
-          </div>
-          <div className="text-[var(--fg-muted)] text-sm">
-            Transcript + Composer (Task 3/4)
-          </div>
-        </div>
-      </div>
+      <Transcript sessionId={sessionId} />
     </main>
   )
 }

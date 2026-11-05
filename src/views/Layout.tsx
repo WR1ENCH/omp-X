@@ -1,4 +1,5 @@
 import { useLayoutState } from '@/hooks/useLayoutState'
+import { useState } from 'react'
 import { Rail } from '@/components/Rail'
 import { Sidebar } from '@/components/Sidebar'
 import { ThreadWorkspace } from '@/components/ThreadWorkspace'
@@ -7,6 +8,7 @@ import { cn } from '@/lib/utils'
 
 export function Layout() {
   const { railWidth, sidebarWidth, dockWidth, ready } = useLayoutState()
+  const [sessionId, setSessionId] = useState<string | null>(null)
 
   if (!ready) {
     return (
@@ -25,8 +27,8 @@ export function Layout() {
         }}
       >
         <Rail />
-        <Sidebar />
-        <ThreadWorkspace />
+        <Sidebar onSessionSelect={setSessionId} />
+        <ThreadWorkspace sessionId={sessionId} />
         <RightDock />
       </div>
     </div>
