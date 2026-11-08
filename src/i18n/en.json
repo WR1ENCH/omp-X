@@ -195,7 +195,7 @@
   },
   "approval": {
     "bashWarning": "Danger: this bash command will run on your machine. Review the full command before approving.",
-    "countdown": "Auto-cancel in {seconds}s",
+    "countdown": "Auto-cancel in {{seconds}}s",
     "select": "Select Option",
     "confirm": "Confirm Action",
     "input": "Enter Value",

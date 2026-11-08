@@ -4,6 +4,7 @@ import { ApprovalModal } from './ApprovalModal'
 import { ApprovalProvider, useApproval } from '@/hooks/useApproval'
 import { invokeRequired } from '@/lib/tauri'
 import type { ApprovalRequest } from '@/types/approval'
+import en from '@/i18n/en.json'
 
 // The global setup mock returns raw keys only; the countdown assertions need
 // the seeded interpolation, so mirror i18next for that one key here.
@@ -170,5 +171,9 @@ describe('ApprovalModal countdown', () => {
       response: { cancelled: true },
     })
     expect(screen.queryByTestId('approval-countdown')).toBeNull()
+  })
+
+  it('uses i18next double-brace interpolation in the real en.json countdown', () => {
+    expect(en.approval.countdown).toContain('{{seconds}}')
   })
 })

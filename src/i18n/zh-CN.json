@@ -195,7 +195,7 @@
   },
   "approval": {
     "bashWarning": "危险：该 bash 命令将在本机运行。批准前请完整审查命令。",
-    "countdown": "{seconds} 秒后自动取消",
+    "countdown": "{{seconds}} 秒后自动取消",
     "select": "选择选项",
     "confirm": "确认操作",
     "input": "输入内容",
