@@ -1,6 +1,7 @@
-import { useId, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ApprovalRequest } from '@/types/approval'
+import { useApproval } from '@/hooks/useApproval'
 import { ModalShell } from './ModalShell'
 import { readExtraString } from './readExtra'
 
@@ -15,11 +16,31 @@ interface InputModalProps {
  */
 export function InputModal({ request, onRespond }: InputModalProps) {
   const { t } = useTranslation()
+  const { requestDeadlines } = useApproval()
   const titleId = useId()
   const [value, setValue] = useState(() =>
     readExtraString(request.extra, 'default', 'value', 'text', 'content'),
   )
   const [busy, setBusy] = useState(false)
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  const deadline = requestDeadlines.get(request.id)
+  const countdownSeconds =
+    deadline === undefined ? undefined : Math.max(0, Math.ceil((deadline - nowMs) / 1000))
+
+  // Tick while pending so the countdown tracks wall-clock drift.
+  useEffect(() => {
+    if (deadline === undefined) return
+    const interval = setInterval(() => setNowMs(Date.now()), 250)
+    return () => clearInterval(interval)
+  }, [deadline])
+
+  // Belt-and-braces: cancel at zero even if the provider timer ever misses.
+  useEffect(() => {
+    if (deadline !== undefined && Date.now() >= deadline) {
+      void onRespond(request.id, null, true)
+    }
+  }, [deadline, nowMs, onRespond, request.id])
 
   const label = request.title || t('approval.input')
   const placeholder = readExtraString(request.extra, 'placeholder')
@@ -67,6 +88,14 @@ export function InputModal({ request, onRespond }: InputModalProps) {
       </div>
 
       <div className="flex justify-end gap-2 border-t border-[var(--border)] px-5 py-3">
+        {countdownSeconds !== undefined && (
+          <span
+            data-testid="approval-countdown"
+            className="mr-auto self-center text-xs text-[var(--fg-secondary)] tabular-nums"
+          >
+            {t('approval.countdown', { seconds: countdownSeconds })}
+          </span>
+        )}
         <button
           type="button"
           data-cancel="true"
