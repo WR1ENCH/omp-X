@@ -8,9 +8,11 @@ import { AttachmentButton } from './AttachmentButton'
 
 interface ComposerProps {
   sessionId: string | null
+  /** Set while an approval modal is open: input and actions are disabled. */
+  disabled?: boolean
 }
 
-export function Composer({ sessionId }: ComposerProps) {
+export function Composer({ sessionId, disabled = false }: ComposerProps) {
   const { t } = useTranslation()
   const {
     state,
@@ -113,7 +115,7 @@ export function Composer({ sessionId }: ComposerProps) {
       )}
 
       <div className="flex items-end gap-2 p-3">
-        <AttachmentButton onAttach={attachFile} disabled={isRunning} />
+        <AttachmentButton onAttach={attachFile} disabled={isRunning || disabled} />
 
         <div className="flex-1 min-w-0 relative">
           <textarea
@@ -123,7 +125,7 @@ export function Composer({ sessionId }: ComposerProps) {
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             placeholder={t('composer.placeholder')}
-            disabled={isRunning}
+            disabled={isRunning || disabled}
             className={cn(
               'w-full min-h-[44px] max-h-[200px] px-4 py-2.5 pr-12',
               'bg-[var(--bg-elevated)] text-[var(--fg-primary)]',
@@ -150,12 +152,15 @@ export function Composer({ sessionId }: ComposerProps) {
             models={availableModels}
             selected={state.modelId}
             onSelect={selectModel}
-            disabled={isRunning}
+            disabled={isRunning || disabled}
           />
 
           {isRunning ? (
+            // Only rendered while running: isRunning must NOT join the disabled
+            // condition, or the stop button could never be clicked.
             <button
               onClick={stop}
+              disabled={disabled}
               className={cn(
                 'flex items-center justify-center w-10 h-10 rounded-lg',
                 'bg-[var(--destructive-muted)] text-[var(--destructive)]',
@@ -171,7 +176,7 @@ export function Composer({ sessionId }: ComposerProps) {
           ) : (
             <button
               onClick={sendPrompt}
-              disabled={!state.value.trim()}
+              disabled={!state.value.trim() || disabled || isRunning}
               className={cn(
                 'flex items-center justify-center w-10 h-10 rounded-lg',
                 'bg-[var(--accent)] text-white',

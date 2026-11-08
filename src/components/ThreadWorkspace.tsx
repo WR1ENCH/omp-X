@@ -49,7 +49,7 @@ function Workspace({ sessionId }: ThreadWorkspaceProps) {
     >
       <Transcript />
       <StatusBar statusItems={statusItems} widgetItems={widgetItems} titleItem={titleItem} />
-      <Composer sessionId={sessionId} />
+      <Composer sessionId={sessionId} disabled={!!currentRequest} />
       {pendingRequests.size > 1 && (
         <div
           className={cn(
