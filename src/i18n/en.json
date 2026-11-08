@@ -178,7 +178,17 @@
     "removeAttachment": "Remove attachment",
     "sendFailed": "Failed to send"
   },
+  "tool": {
+    "viewMore": "View More",
+    "openFullOutput": "Open full output",
+    "copy": "Copy"
+  },
+  "model": {
+    "unavailable": "No models available"
+  },
   "approval": {
+    "bashWarning": "Danger: this bash command will run on your machine. Review the full command before approving.",
+    "countdown": "Auto-cancel in {seconds}s",
     "select": "Select Option",
     "confirm": "Confirm Action",
     "input": "Enter Value",

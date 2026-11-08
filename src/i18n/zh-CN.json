@@ -178,7 +178,17 @@
     "removeAttachment": "移除附件",
     "sendFailed": "发送失败"
   },
+  "tool": {
+    "viewMore": "查看更多",
+    "openFullOutput": "打开完整输出",
+    "copy": "复制"
+  },
+  "model": {
+    "unavailable": "暂无可用模型"
+  },
   "approval": {
+    "bashWarning": "危险：该 bash 命令将在本机运行。批准前请完整审查命令。",
+    "countdown": "{seconds} 秒后自动取消",
     "select": "选择选项",
     "confirm": "确认操作",
     "input": "输入内容",
