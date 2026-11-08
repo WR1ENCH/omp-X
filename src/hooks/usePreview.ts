@@ -30,6 +30,21 @@ export function normalizePreviewUrl(input: string): string | null {
   }
 }
 
+/**
+ * Asserts that `url` is a safe remote http(s) URL for the preview surface.
+ * Returns the normalized URL, or throws when the input cannot be turned into
+ * one (empty input, or a non-http(s) scheme such as tauri://, file://,
+ * javascript:, or a malformed URL). Unlike normalizePreviewUrl, which
+ * returns null, this guard is for call sites that must not proceed silently.
+ */
+export function assertSafePreviewUrl(url: string): string {
+  const normalized = normalizePreviewUrl(url)
+  if (normalized === null) {
+    throw new Error('Unsafe preview URL: ' + JSON.stringify(url))
+  }
+  return normalized
+}
+
 function errorMessage(err: unknown): string {
   if (err instanceof Error) return err.message
   if (typeof err === 'string') return err
