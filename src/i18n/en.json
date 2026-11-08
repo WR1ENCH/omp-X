@@ -181,7 +181,14 @@
   "tool": {
     "viewMore": "View More",
     "openFullOutput": "Open full output",
-    "copy": "Copy"
+    "copy": "Copy",
+    "copied": "Copied",
+    "arguments": "Arguments",
+    "result": "Result",
+    "error": "Error",
+    "statusRunning": "Running",
+    "statusFailed": "Failed",
+    "statusDone": "Done"
   },
   "model": {
     "unavailable": "No models available"

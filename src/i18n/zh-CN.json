@@ -181,7 +181,14 @@
   "tool": {
     "viewMore": "查看更多",
     "openFullOutput": "打开完整输出",
-    "copy": "复制"
+    "copy": "复制",
+    "copied": "已复制",
+    "arguments": "参数",
+    "result": "结果",
+    "error": "错误",
+    "statusRunning": "Running",
+    "statusFailed": "Failed",
+    "statusDone": "Done"
   },
   "model": {
     "unavailable": "暂无可用模型"
