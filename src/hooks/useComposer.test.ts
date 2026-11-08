@@ -80,6 +80,25 @@ describe('useComposer', () => {
     expect(result.current.isRunning).toBe(false)
   })
 
+  it('sends /switch text verbatim without intercepting or rewriting it', async () => {
+    invokeMock.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useComposer('s1'))
+    act(() => result.current.setState((prev) => ({ ...prev, value: '/switch some-model' })))
+
+    await act(async () => {
+      await result.current.sendPrompt()
+    })
+
+    // /switch is an omp built-in command: the composer passes the raw text
+    // through as an ordinary prompt and never rewrites the token.
+    expect(transcriptMock.addUserMessage).toHaveBeenCalledWith('/switch some-model')
+    expect(invokeMock).toHaveBeenCalledWith('send_prompt', {
+      sessionId: 's1',
+      prompt: '/switch some-model',
+    })
+  })
+
   it('derives the running state from isStreaming', () => {
     const { result, rerender } = renderHook(() => useComposer('s1'))
 
