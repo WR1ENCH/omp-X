@@ -156,4 +156,44 @@ describe('ApprovalProvider', () => {
     expect(result.current.pendingRequests.has('r1')).toBe(false)
     expect(result.current.pendingRequests.has('r2')).toBe(true)
   })
+
+  it('auto-cancels at the settings-configured timeout with { cancelled: true }', async () => {
+    vi.useFakeTimers()
+    // Configure approvalTimeoutMs=500 through the settings store, using the
+    // browser bridge path (LS_PREFIX + path + key, see src/lib/store.ts).
+    ;(localStorage.getItem as unknown as ReturnType<typeof vi.fn>).mockReturnValueOnce(
+      JSON.stringify(500),
+    )
+    const { result } = renderApproval()
+    // Let the settings read settle before the request arrives.
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(result.current.approvalTimeoutMs).toBe(500)
+
+    dispatchRequest('r1', { method: 'confirm', title: 'Sure?' })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(result.current.pendingRequests.has('r1')).toBe(true)
+    expect(result.current.requestDeadlines.has('r1')).toBe(true)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(499)
+    })
+    expect(result.current.pendingRequests.has('r1')).toBe(true)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1)
+    })
+
+    // LOCKED encoding: a timeout answers { cancelled: true }, nothing else.
+    expect(invokeRequiredMock).toHaveBeenCalledWith('send_ui_response', {
+      sessionId: 's1',
+      requestId: 'r1',
+      response: { cancelled: true },
+    })
+    expect(result.current.pendingRequests.has('r1')).toBe(false)
+  })
 })

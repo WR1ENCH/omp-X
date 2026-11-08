@@ -10,11 +10,16 @@ import {
 } from 'react'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { invokeRequired, isTauri } from '@/lib/tauri'
+import { storeGet } from '@/lib/store'
 import type { FrontendEvent } from '@/types/ipc'
 import type { ApprovalRequest, StatusItem, Toast, WidgetItem } from '@/types/approval'
 
+/** Settings store path holding the configurable approval timeout. */
+const SETTINGS_STORE_PATH = 'settings.json'
+const APPROVAL_TIMEOUT_KEY = 'approvalTimeoutMs'
+
 /** Requests that are not answered within this window are auto-cancelled. */
-export const APPROVAL_TIMEOUT_MS = 120_000
+export const APPROVAL_TIMEOUT_MS = 60_000
 
 const DEFAULT_TOAST_DURATION_MS = 5000
 
@@ -36,6 +41,10 @@ const METHOD_ALIASES: Record<string, ApprovalRequest['method']> = {
 export interface ApprovalApi {
   /** Decision-blocking requests only; notification methods never land here. */
   pendingRequests: Map<string, ApprovalRequest>
+  /** Auto-cancel deadline (epoch ms) per pending request, for countdown UI. */
+  requestDeadlines: Map<string, number>
+  /** Active auto-cancel window in ms (settings override, default 60s). */
+  approvalTimeoutMs: number
   toasts: Toast[]
   statusItems: StatusItem[]
   widgetItems: WidgetItem[]
@@ -120,12 +129,35 @@ export function ApprovalProvider({ sessionId, children }: { sessionId: string | 
   const [statusItems, setStatusItems] = useState<StatusItem[]>([])
   const [widgetItems, setWidgetItems] = useState<WidgetItem[]>([])
   const [titleItem, setTitleItem] = useState<string | null>(null)
+  const [timeoutMs, setTimeoutMs] = useState(APPROVAL_TIMEOUT_MS)
+  const [requestDeadlines, setRequestDeadlines] = useState<Map<string, number>>(new Map())
 
+  // Ref mirror of timeoutMs so scheduleTimeout never sees a stale snapshot.
+  const timeoutMsRef = useRef(APPROVAL_TIMEOUT_MS)
   const requestSessionRef = useRef(new Map<string, string>())
   const seenIdsRef = useRef(new Set<string>())
   const timersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   const toastTimersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   const toastSeqRef = useRef(0)
+
+  // Configurable timeout: settings.json `approvalTimeoutMs` overrides the
+  // 60s default once the store resolves. Already-scheduled timers keep the
+  // value they were scheduled with (snapshot semantics, reload-safe).
+  useEffect(() => {
+    let active = true
+    storeGet<number>(SETTINGS_STORE_PATH, APPROVAL_TIMEOUT_KEY)
+      .then((stored) => {
+        if (!active) return
+        if (typeof stored === 'number' && Number.isFinite(stored) && stored > 0) {
+          timeoutMsRef.current = stored
+          setTimeoutMs(stored)
+        }
+      })
+      .catch((err) => console.error('[approval] failed to read approval timeout setting', err))
+    return () => {
+      active = false
+    }
+  }, [])
 
   const dismissToast = useCallback((id: string) => {
     const timer = toastTimersRef.current.get(id)
@@ -158,6 +190,12 @@ export function ApprovalProvider({ sessionId, children }: { sessionId: string | 
       clearTimeout(timer)
       timersRef.current.delete(id)
     }
+    setRequestDeadlines((prev) => {
+      if (!prev.has(id)) return prev
+      const next = new Map(prev)
+      next.delete(id)
+      return next
+    })
   }, [])
 
   const respond = useCallback(
@@ -198,12 +236,25 @@ export function ApprovalProvider({ sessionId, children }: { sessionId: string | 
   const scheduleTimeout = useCallback(
     (id: string) => {
       clearRequestTimer(id)
+      const windowMs = timeoutMsRef.current
+      const deadline = Date.now() + windowMs
+      setRequestDeadlines((prev) => {
+        const next = new Map(prev)
+        next.set(id, deadline)
+        return next
+      })
       timersRef.current.set(
         id,
         setTimeout(() => {
           timersRef.current.delete(id)
+          setRequestDeadlines((prev) => {
+            if (!prev.has(id)) return prev
+            const next = new Map(prev)
+            next.delete(id)
+            return next
+          })
           void respondRef.current(id, null, true)
-        }, APPROVAL_TIMEOUT_MS),
+        }, windowMs),
       )
     },
     [clearRequestTimer],
@@ -316,6 +367,7 @@ export function ApprovalProvider({ sessionId, children }: { sessionId: string | 
   if (sessionId !== previousSessionId) {
     setPreviousSessionId(sessionId)
     setPendingRequests(new Map())
+    setRequestDeadlines(new Map())
     setToasts([])
     setStatusItems([])
     setWidgetItems([])
@@ -343,6 +395,8 @@ export function ApprovalProvider({ sessionId, children }: { sessionId: string | 
   const value = useMemo<ApprovalApi>(
     () => ({
       pendingRequests,
+      requestDeadlines,
+      approvalTimeoutMs: timeoutMs,
       toasts,
       statusItems,
       widgetItems,
@@ -350,7 +404,17 @@ export function ApprovalProvider({ sessionId, children }: { sessionId: string | 
       respond,
       dismissToast,
     }),
-    [pendingRequests, toasts, statusItems, widgetItems, titleItem, respond, dismissToast],
+    [
+      pendingRequests,
+      requestDeadlines,
+      timeoutMs,
+      toasts,
+      statusItems,
+      widgetItems,
+      titleItem,
+      respond,
+      dismissToast,
+    ],
   )
 
   return <ApprovalContext.Provider value={value}>{children}</ApprovalContext.Provider>

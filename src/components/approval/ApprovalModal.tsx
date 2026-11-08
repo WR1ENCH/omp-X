@@ -1,7 +1,8 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
 import type { ApprovalRequest } from '@/types/approval'
+import { useApproval } from '@/hooks/useApproval'
 import { cn } from '@/lib/utils'
 import { ModalShell } from './ModalShell'
 import { InputModal } from './InputModal'
@@ -82,8 +83,28 @@ interface SelectOrConfirmModalProps {
  */
 function SelectOrConfirmModal({ request, onRespond }: SelectOrConfirmModalProps) {
   const { t } = useTranslation()
+  const { requestDeadlines } = useApproval()
   const titleId = useId()
   const [busy, setBusy] = useState(false)
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  const deadline = requestDeadlines.get(request.id)
+  const countdownSeconds =
+    deadline === undefined ? undefined : Math.max(0, Math.ceil((deadline - nowMs) / 1000))
+
+  // Tick while pending so the countdown tracks wall-clock drift.
+  useEffect(() => {
+    if (deadline === undefined) return
+    const interval = setInterval(() => setNowMs(Date.now()), 250)
+    return () => clearInterval(interval)
+  }, [deadline])
+
+  // Belt-and-braces: cancel at zero even if the provider timer ever misses.
+  useEffect(() => {
+    if (deadline !== undefined && Date.now() >= deadline) {
+      void onRespond(request.id, null, true)
+    }
+  }, [deadline, nowMs, onRespond, request.id])
 
   const isSelect = request.method === 'select'
   const bashCommand = extractBashCommand(request)
@@ -161,6 +182,14 @@ function SelectOrConfirmModal({ request, onRespond }: SelectOrConfirmModalProps)
       </div>
 
       <div className="flex justify-end gap-2 border-t border-[var(--border)] px-5 py-3">
+        {countdownSeconds !== undefined && (
+          <span
+            data-testid="approval-countdown"
+            className="mr-auto self-center text-xs text-[var(--fg-secondary)] tabular-nums"
+          >
+            {t('approval.countdown', { seconds: countdownSeconds })}
+          </span>
+        )}
         <button
           type="button"
           data-cancel="true"
