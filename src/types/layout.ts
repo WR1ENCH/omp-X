@@ -1,6 +1,6 @@
 export type RailView = 'sessions' | 'worktrees' | 'agents' | 'tools' | 'settings' | 'help' | 'debug'
 
-export type DockTab = 'preview' | 'terminal' | 'diff' | 'worktree'
+export type DockTab = 'preview' | 'terminal' | 'diff' | 'worktree' | 'editor'
 
 export interface LayoutState {
   railView: RailView

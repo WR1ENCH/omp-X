@@ -25,6 +25,17 @@ impl LineSplitter {
         }
     }
 
+    /// Raise or lower the frame limit without discarding a partial frame.
+    ///
+    /// The child advertises `maxFrameBytes` in its `ready` frame, which can
+    /// arrive while an earlier frame is still buffered. Replacing the whole
+    /// splitter would drop those bytes; mutating the limit keeps `buf` and the
+    /// `discarding` state intact. If the buffered partial frame already
+    /// exceeds the new limit, the next `push` reports it as `Oversized`.
+    pub fn set_max_frame_bytes(&mut self, max_frame_bytes: usize) {
+        self.max_frame_bytes = max_frame_bytes;
+    }
+
     pub fn push(&mut self, chunk: &[u8]) -> Vec<RawLine> {
         let mut results = Vec::new();
 
@@ -50,7 +61,9 @@ impl LineSplitter {
             if content_len > self.max_frame_bytes {
                 // A complete line is a complete oversized frame; its \n already
                 // consumed, so bytes after it are a fresh frame. No discard state.
-                results.push(RawLine::Oversized { len: line_bytes.len() });
+                results.push(RawLine::Oversized {
+                    len: line_bytes.len(),
+                });
                 continue;
             }
 
@@ -62,7 +75,9 @@ impl LineSplitter {
 
             match serde_json::from_slice::<Value>(content) {
                 Ok(v) => results.push(RawLine::Json(v)),
-                Err(_) => results.push(RawLine::Noise(String::from_utf8_lossy(content).into_owned())),
+                Err(_) => results.push(RawLine::Noise(
+                    String::from_utf8_lossy(content).into_owned(),
+                )),
             }
         }
 
@@ -91,5 +106,32 @@ mod tests {
         let out = s.push(b"{\"type\":\"ready\"}\n");
         assert_eq!(out.len(), 1);
         assert!(matches!(out[0], RawLine::Json(_)));
+    }
+
+    #[test]
+    fn raising_limit_preserves_buffered_partial_frame() {
+        let mut s = LineSplitter::new(1024);
+        // A partial frame (no newline yet) is buffered under the old limit.
+        let partial = "{\"type\":\"available_commands_update\",\"commands\":[";
+        assert!(s.push(partial.as_bytes()).is_empty());
+        // The ready frame raises the limit mid-frame; the buffered bytes must
+        // survive instead of being discarded with a replacement splitter.
+        s.set_max_frame_bytes(1_048_576);
+        let out = s.push(b"{\"name\":\"x\"}]}\n");
+        assert_eq!(out.len(), 1);
+        match &out[0] {
+            RawLine::Json(v) => assert_eq!(v["type"], "available_commands_update"),
+            other => panic!("expected Json, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn lowering_limit_flags_buffered_partial_frame() {
+        let mut s = LineSplitter::new(1024);
+        let partial = "x".repeat(16);
+        assert!(s.push(partial.as_bytes()).is_empty());
+        s.set_max_frame_bytes(8);
+        let out = s.push(b"");
+        assert_eq!(out, vec![RawLine::Oversized { len: 16 }]);
     }
 }

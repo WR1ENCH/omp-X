@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "omp-X"
+  },
   "rail": {
     "sessions": "会话",
     "worktrees": "工作树",
@@ -6,7 +9,8 @@
     "tools": "工具",
     "settings": "设置",
     "help": "帮助",
-    "debug": "调试"
+    "debug": "调试",
+    "ariaLabel": "主导航"
   },
   "sidebar": {
     "sessions": {
@@ -47,27 +51,155 @@
       "logs": "日志",
       "inspect": "检查",
       "clear": "清空"
-    }
+    },
+    "resize": "调整侧栏大小"
   },
   "dock": {
     "preview": "预览",
     "terminal": "终端",
     "diff": "差异",
-    "worktree": "工作树"
+    "worktree": "工作树",
+    "editor": "编辑器",
+    "ariaLabel": "右侧面板",
+    "tabs": "面板标签",
+    "expand": "展开面板",
+    "collapse": "收起面板",
+    "resize": "调整面板宽度",
+    "preview_group": {
+      "title": "预览",
+      "url": "网址",
+      "placeholder": "输入网址",
+      "go": "前往",
+      "back": "后退",
+      "forward": "前进",
+      "reload": "重新加载",
+      "loading": "加载中…",
+      "error": "页面加载失败",
+      "retry": "重试",
+      "openExternal": "在浏览器中打开",
+      "tauriOnly": "预览需要 Tauri 运行时",
+      "invalidUrl": "请输入有效的 http 或 https 网址",
+      "windowClosed": "预览窗口已关闭",
+      "reopen": "重新打开",
+      "closeWindow": "关闭预览窗口",
+      "separateWindow": "预览正在独立窗口中运行"
+    },
+    "terminal_group": {
+      "ariaLabel": "终端",
+      "connected": "已连接",
+      "disconnected": "未连接",
+      "connecting": "连接中…",
+      "copy": "复制选中内容",
+      "paste": "粘贴",
+      "clear": "清空",
+      "disconnect": "断开连接",
+      "connect": "连接",
+      "error": "终端错误",
+      "retry": "重试",
+      "tauriOnly": "终端需要 Tauri 运行时"
+    },
+    "diff_group": {
+      "noFile": "未选择文件",
+      "search": "搜索差异",
+      "searchPlaceholder": "过滤行",
+      "clear": "清除差异",
+      "error": "差异错误",
+      "emptyState": "未加载差异",
+      "emptyHint": "打开一个文件变更即可查看差异。",
+      "moreHunks": "还有 {count} 个 hunk",
+      "added": "新增",
+      "removed": "删除",
+      "hunks": "个 hunk",
+      "linesHidden": "还有 {count} 行已隐藏",
+      "showMore": "显示另外 {count} 个 hunk",
+      "toggleHunk": "折叠/展开 hunk",
+      "compare": "文本对比",
+      "oldContent": "原始内容",
+      "newContent": "修改后",
+      "compareAction": "对比"
+    },
+    "worktree_group": {
+      "title": "工作树",
+      "add": "添加",
+      "refresh": "刷新",
+      "prune": "清理",
+      "createNew": "新建工作树",
+      "path": "路径",
+      "pathPlaceholder": "../my-worktree",
+      "branch": "分支",
+      "branchPlaceholder": "feature/x",
+      "baseBranch": "基线分支",
+      "baseBranchPlaceholder": "main",
+      "requiredFields": "路径和分支为必填项",
+      "creating": "创建中…",
+      "create": "创建",
+      "createFirst": "创建工作树",
+      "emptyState": "暂无工作树",
+      "emptyHint": "创建一个工作树以隔离变更。",
+      "detached": "分离",
+      "bare": "裸库",
+      "locked": "锁定",
+      "prunable": "可清理",
+      "copyPath": "复制路径",
+      "openFolder": "打开文件夹",
+      "remove": "删除",
+      "removing": "删除中…",
+      "error": "工作树错误",
+      "retry": "重试",
+      "noRepo": "未选择仓库",
+      "noRepoHint": "请先选择一个会话以管理其工作树。",
+      "tauriOnly": "工作树管理需要 Tauri 运行时",
+      "confirmRemoveTitle": "删除工作树？",
+      "confirmRemoveBody": "{path} 将从磁盘删除，且无法撤销。",
+      "confirmRemove": "删除",
+      "cancelRemove": "取消",
+      "confirmPruneTitle": "清理工作树？",
+      "confirmPruneBody": "Git 将移除过期的工作树元数据，不会删除你的工作目录。",
+      "confirmPrune": "清理"
+    },
+    "editor_group": {
+      "title": "编辑器",
+      "hint": "回车换行，Ctrl/Cmd+Enter 保存",
+      "save": "保存",
+      "cancel": "取消",
+      "empty": "暂无编辑请求",
+      "emptyHint": "来自代理的编辑请求会显示在这里。",
+      "noHandler": "尚未接入保存处理逻辑，编辑内容不会回传。"
+    }
   },
   "composer": {
     "placeholder": "输入消息...",
     "send": "发送",
     "attach": "附件",
-    "voice": "语音"
+    "model": "模型",
+    "slashCommands": "斜杠命令",
+    "queue": "队列",
+    "stop": "停止",
+    "removeAttachment": "移除附件",
+    "sendFailed": "发送失败"
   },
   "approval": {
-    "toolCall": "工具调用",
-    "diff": "代码变更",
-    "command": "命令",
-    "confirm": "确认",
+    "select": "选择选项",
+    "confirm": "确认操作",
+    "input": "输入内容",
+    "editor": "在编辑器中编辑",
+    "approve": "批准",
     "deny": "拒绝",
-    "details": "详情"
+    "cancel": "取消",
+    "save": "保存",
+    "details": "详情",
+    "noOptions": "未提供可选项",
+    "confirmPrompt": "是否继续？",
+    "editorHint": "回车换行，Ctrl/Cmd+Enter 保存",
+    "queued": "还有 {{count}} 个待处理"
+  },
+  "toast": {
+    "info": "信息",
+    "warning": "警告",
+    "error": "错误"
+  },
+  "status": {
+    "bar": "状态栏"
   },
   "common": {
     "loading": "加载中...",

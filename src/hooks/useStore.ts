@@ -1,43 +1,73 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
-import { LayoutState, DEFAULT_LAYOUT_STATE } from '@/types/layout'
+import { storeGet, storeSave, storeSet } from '@/lib/store'
+import { DEFAULT_LAYOUT_STATE, LayoutState } from '@/types/layout'
 
-const STORE_KEY = 'layout.json'
+export const LAYOUT_STORE_PATH = 'layout.json'
+export const LAYOUT_STORE_KEY = 'layout'
 
-export function useStore() {
+export interface LayoutStoreApi {
+  /** Read the persisted layout state. Idempotent: concurrent calls share one read. */
+  load: () => Promise<LayoutState>
+  /** Persist the full layout snapshot. */
+  save: (state: LayoutState) => Promise<void>
+  /** Alias for `save`, used by the layout provider on every mutation. */
+  persist: (state: LayoutState) => Promise<void>
+  /** True once the initial read has settled. */
+  ready: boolean
+}
+
+/**
+ * Single persistence path for layout state.
+ *
+ * Every read/write goes through the tauri-plugin-store bridge in
+ * `@/lib/store` (browser builds fall back to localStorage). The previous
+ * implementation called `plugin:store|get` without a resource id and parsed
+ * the tuple as the value, so nothing was ever persisted.
+ */
+export function useStore(): LayoutStoreApi {
   const [ready, setReady] = useState(false)
-  const loadingRef = useRef(false)
+  const loadPromiseRef = useRef<Promise<LayoutState> | null>(null)
 
   const load = useCallback(async (): Promise<LayoutState> => {
-    if (loadingRef.current) return DEFAULT_LAYOUT_STATE
-    loadingRef.current = true
-    try {
-      const stored = await invoke<string>('plugin:store|get', { key: STORE_KEY })
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        return { ...DEFAULT_LAYOUT_STATE, ...parsed }
-      }
-      return DEFAULT_LAYOUT_STATE
-    } catch {
-      return DEFAULT_LAYOUT_STATE
-    } finally {
-      loadingRef.current = false
-      setReady(true)
+    if (!loadPromiseRef.current) {
+      loadPromiseRef.current = (async () => {
+        try {
+          const stored = await storeGet<Partial<LayoutState>>(LAYOUT_STORE_PATH, LAYOUT_STORE_KEY)
+          return stored ? { ...DEFAULT_LAYOUT_STATE, ...stored } : DEFAULT_LAYOUT_STATE
+        } catch (err) {
+          console.error('[layout] failed to load persisted state:', err)
+          return DEFAULT_LAYOUT_STATE
+        }
+      })()
     }
+    return loadPromiseRef.current
   }, [])
 
   const save = useCallback(async (state: LayoutState): Promise<void> => {
     try {
-      await invoke('plugin:store|set', { key: STORE_KEY, value: JSON.stringify(state) })
-      await invoke('plugin:store|save')
-    } catch (e) {
-      console.error('Failed to save layout state:', e)
+      await storeSet(LAYOUT_STORE_PATH, LAYOUT_STORE_KEY, state)
+      await storeSave(LAYOUT_STORE_PATH)
+    } catch (err) {
+      console.error('[layout] failed to persist state:', err)
     }
   }, [])
 
+  const persist = useCallback(
+    async (state: LayoutState): Promise<void> => {
+      await save(state)
+    },
+    [save],
+  )
+
   useEffect(() => {
-    load().then(() => setReady(true))
+    let active = true
+    load().then(() => {
+      if (active) setReady(true)
+    })
+    return () => {
+      active = false
+    }
   }, [load])
 
-  return { load, save, ready }
+  return { load, save, persist, ready }
 }

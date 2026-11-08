@@ -24,19 +24,18 @@ const RAIL_ITEMS: { id: RailView; icon: React.ReactNode; labelKey: string }[] = 
 
 export function Rail() {
   const { t } = useTranslation()
-  const { railView, setRailView } = useLayoutState()
+  const { state, setRailView } = useLayoutState()
+  const railView = state.railView
 
   return (
     <nav
       className={cn(
-        'flex flex-col items-center',
+        'flex flex-col items-center h-full',
         'bg-[var(--bg-elevated)] border-r border-[var(--border)]',
-        'transition-all duration-200',
-        'w-[48px] h-full',
-        'fixed left-0 top-0 z-10'
+        'transition-colors duration-200'
       )}
       style={{ width: 'var(--rail-width)' }}
-      aria-label={t('rail.sessions')}
+      aria-label={t('rail.ariaLabel')}
       role="navigation"
     >
       <div className="flex flex-col items-center h-full px-2 py-4 gap-1" role="toolbar">

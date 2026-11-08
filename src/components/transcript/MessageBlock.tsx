@@ -1,43 +1,45 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { Block } from '@/types/transcript'
+import { AssistantBlock, Message, UserBlock } from '@/types/transcript'
 import { format } from 'date-fns'
+import MarkdownIt from 'markdown-it'
 
 interface MessageBlockProps {
-  block: Block
-  message: { role: 'user' | 'assistant' | 'system'; timestamp: number }
+  block: UserBlock | AssistantBlock
+  message: Message
 }
+
+// html:false is a hard requirement: model output is untrusted. With html:true
+// a completion containing <script> or an onerror handler reaches
+// dangerouslySetInnerHTML verbatim and executes in the webview.
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  typographer: true,
+  breaks: true,
+})
 
 function formatTime(timestamp: number) {
   return format(new Date(timestamp), 'HH:mm')
 }
 
-function renderMarkdown(content: string) {
-  return content
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
-    .replace(/\n/g, '<br />')
-}
-
-export function MessageBlock({ block, message }: MessageBlockProps) {
+/**
+ * Renders a user or assistant message body.
+ *
+ * While the assistant block is streaming we render plain text instead of
+ * markdown: re-parsing a growing document every animation frame is O(n²) and
+ * makes high token rates stutter. Markdown is applied once the block settles.
+ */
+export const MessageBlock = memo(function MessageBlock({ block, message }: MessageBlockProps) {
   const isUser = message.role === 'user'
-  const time = useMemo(() => formatTime(message.timestamp), [message.timestamp])
+  const isStreaming = block.type === 'assistant' && block.streaming === true
+  const time = formatTime(message.timestamp)
 
-  const content = useMemo(() => {
-    if (block.type === 'user' || block.type === 'assistant') {
-      return renderMarkdown(block.content)
-    }
-    return ''
-  }, [block])
+  const html = useMemo(() => (isStreaming ? '' : md.render(block.content)), [block.content, isStreaming])
 
   return (
     <div
-      className={cn(
-        'w-full px-4 py-2',
-        isUser ? 'flex justify-end' : 'flex justify-start'
-      )}
+      className={cn('w-full px-4 py-2', isUser ? 'flex justify-end' : 'flex justify-start')}
       data-role={message.role}
     >
       <div
@@ -48,10 +50,17 @@ export function MessageBlock({ block, message }: MessageBlockProps) {
             : 'bg-[var(--bg-elevated)] text-[var(--fg-primary)] rounded-bl-md border border-[var(--border)]'
         )}
       >
-        <div
-          className="prose prose-sm dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
+        {isStreaming ? (
+          <pre className="md-body max-w-none whitespace-pre-wrap">{block.content}</pre>
+        ) : (
+          <div
+            // markdown-it output styling. `prose` needs @tailwindcss/typography,
+            // which is deliberately not a dependency here, so the same rules are
+            // declared explicitly against the token layer.
+            className="md-body max-w-none"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        )}
         <div
           className={cn(
             'flex items-center gap-1.5 mt-1.5 text-xs',
@@ -59,11 +68,9 @@ export function MessageBlock({ block, message }: MessageBlockProps) {
           )}
         >
           <span>{time}</span>
-          {block.type === 'assistant' && block.streaming && (
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-          )}
+          {isStreaming && <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />}
         </div>
       </div>
     </div>
   )
-}
+})

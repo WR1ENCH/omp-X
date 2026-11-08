@@ -1,1 +1,10 @@
 /target
+node_modules
+dist
+playwright-report
+test-results
+.agents/
+.gtkdeps/
+.gtkdev-dl/
+.pw-browsers/
+crates/omp-tauri/gen/

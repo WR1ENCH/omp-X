@@ -1,79 +1,129 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ChevronRight, Maximize2, Minimize2, X } from 'lucide-react'
+import { ChevronRight, Maximize2, Minimize2, X, Edit3 } from 'lucide-react'
 import { useLayoutState } from '@/hooks/useLayoutState'
-import { DockTab } from '@/types/layout'
+import { DOCK_MAX_WIDTH, DOCK_MIN_WIDTH, DockTab } from '@/types/layout'
 import { cn } from '@/lib/utils'
+import { renderDockTab } from '@/components/dock/DockTabs'
 
 const DOCK_TABS: { id: DockTab; icon: React.ReactNode; labelKey: string }[] = [
   { id: 'preview', icon: <Maximize2 size={16} />, labelKey: 'dock.preview' },
   { id: 'terminal', icon: <Minimize2 size={16} />, labelKey: 'dock.terminal' },
   { id: 'diff', icon: <X size={16} />, labelKey: 'dock.diff' },
   { id: 'worktree', icon: <ChevronRight size={16} />, labelKey: 'dock.worktree' },
+  { id: 'editor', icon: <Edit3 size={16} />, labelKey: 'dock.editor' },
 ]
+
+const RESIZE_STEP = 16
 
 interface RightDockProps {
   onResize?: (width: number) => void
+  /** Changes when a new editor request arrives; forces the editor textarea to remount. */
+  editorKey?: string
+  editorValue?: string
+  onEditorChange?: (value: string) => void
+  onEditorSave?: (value: string) => void
+  onEditorCancel?: () => void
 }
 
-export function RightDock({ onResize }: RightDockProps) {
+export function RightDock({
+  onResize,
+  editorKey,
+  editorValue,
+  onEditorChange,
+  onEditorSave,
+  onEditorCancel,
+}: RightDockProps) {
   const { t } = useTranslation()
-  const { dockCollapsed, dockTab, dockWidth, setDockTab, setDockWidth, toggleDock } = useLayoutState()
+  const { state, dockWidth, setDockTab, setDockWidth, toggleDock } = useLayoutState()
+  const { dockCollapsed, dockTab } = state
   const [isResizing, setIsResizing] = useState(false)
   const resizeStartRef = useRef({ x: 0, width: dockWidth })
+  const [editorDraft, setEditorDraft] = useState(editorValue ?? '')
+  const [lastEditorValue, setLastEditorValue] = useState(editorValue)
+
+  // Reset the draft when a different editor request arrives. This runs during
+  // render so the textarea remount (keyed by editorKey) never shows stale text.
+  if (editorValue !== lastEditorValue) {
+    setLastEditorValue(editorValue)
+    setEditorDraft(editorValue ?? '')
+  }
 
   const width = dockCollapsed ? 0 : dockWidth
 
-  const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsResizing(true)
-    resizeStartRef.current = { x: e.clientX, width: dockWidth }
-  }, [dockWidth])
+  const handleResizeMouseDown = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault()
+      setIsResizing(true)
+      resizeStartRef.current = { x: event.clientX, width: dockWidth }
+    },
+    [dockWidth],
+  )
+
+  const handleResizeKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+      event.preventDefault()
+      const delta = event.key === 'ArrowLeft' ? RESIZE_STEP : -RESIZE_STEP
+      const next = Math.max(DOCK_MIN_WIDTH, Math.min(DOCK_MAX_WIDTH, dockWidth + delta))
+      setDockWidth(next)
+      onResize?.(next)
+    },
+    [dockWidth, setDockWidth, onResize],
+  )
 
   useEffect(() => {
     if (!isResizing) return
-
-    const handleMove = (e: MouseEvent) => {
-      const delta = resizeStartRef.current.x - e.clientX
-      const newWidth = Math.max(280, Math.min(640, resizeStartRef.current.width + delta))
-      setDockWidth(newWidth)
-      onResize?.(newWidth)
+    const handleMouseMove = (event: MouseEvent) => {
+      const next = Math.max(
+        DOCK_MIN_WIDTH,
+        Math.min(DOCK_MAX_WIDTH, resizeStartRef.current.width + (resizeStartRef.current.x - event.clientX)),
+      )
+      setDockWidth(next)
+      onResize?.(next)
     }
-
-    const handleUp = () => {
-      setIsResizing(false)
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mouseup', handleUp)
-    }
-
-    window.addEventListener('mousemove', handleMove)
-    window.addEventListener('mouseup', handleUp)
-
+    const handleMouseUp = () => setIsResizing(false)
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
     return () => {
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mouseup', handleUp)
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
     }
   }, [isResizing, setDockWidth, onResize])
+
+  const handleEditorChange = useCallback(
+    (value: string) => {
+      setEditorDraft(value)
+      onEditorChange?.(value)
+    },
+    [onEditorChange],
+  )
+
+  const handleEditorSave = useCallback(() => {
+    onEditorSave?.(editorDraft)
+  }, [editorDraft, onEditorSave])
 
   if (dockCollapsed) {
     return (
       <aside
         className={cn(
-          'flex flex-col items-center',
-          'bg-[var(--bg-elevated)] border-l border-[var(--border)]',
-          'transition-all duration-200',
-          'fixed right-0 top-0 z-10 h-full',
-          'overflow-hidden'
+          'relative h-full flex flex-col',
+          'bg-[var(--bg-base)] border-l border-[var(--border)]'
         )}
-        style={{ width: '0px' }}
-        aria-label={t('dock.preview')}
+        style={{ width: 0 }}
+        role="complementary"
+        aria-label={t('dock.ariaLabel')}
       >
         <button
           onClick={toggleDock}
-          className="mt-4 ml-2 p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--fg-secondary)] transition-colors"
-          aria-label={t('common.expand')}
-          title={t('common.expand')}
+          className={cn(
+            'absolute -left-10 top-1/2 -translate-y-1/2 w-10 h-10 rounded-l-lg',
+            'bg-[var(--bg-elevated)] border border-[var(--border)] border-r-0',
+            'flex items-center justify-center text-[var(--fg-secondary)]',
+            'hover:text-[var(--fg-primary)] hover:bg-[var(--bg-hover)]',
+            'transition-colors'
+          )}
+          aria-label={t('dock.expand')}
         >
           <ChevronRight size={16} />
         </button>
@@ -81,110 +131,98 @@ export function RightDock({ onResize }: RightDockProps) {
     )
   }
 
-  const renderTabContent = () => {
-    switch (dockTab) {
-      case 'preview':
-        return (
-          <div className="flex-1 p-4 overflow-y-auto">
-            <h3 className="text-sm font-medium text-[var(--fg-primary)] mb-4">{t('dock.preview')}</h3>
-            <div className="text-[var(--fg-muted)] text-sm text-center py-8">
-              Preview content (Task 5+)
-            </div>
-          </div>
-        )
-      case 'terminal':
-        return (
-          <div className="flex-1 p-4 overflow-y-auto">
-            <h3 className="text-sm font-medium text-[var(--fg-primary)] mb-4">{t('dock.terminal')}</h3>
-            <div className="text-[var(--fg-muted)] text-sm text-center py-8">
-              Terminal (Task 5+)
-            </div>
-          </div>
-        )
-      case 'diff':
-        return (
-          <div className="flex-1 p-4 overflow-y-auto">
-            <h3 className="text-sm font-medium text-[var(--fg-primary)] mb-4">{t('dock.diff')}</h3>
-            <div className="text-[var(--fg-muted)] text-sm text-center py-8">
-              Diff viewer (Task 5+)
-            </div>
-          </div>
-        )
-      case 'worktree':
-        return (
-          <div className="flex-1 p-4 overflow-y-auto">
-            <h3 className="text-sm font-medium text-[var(--fg-primary)] mb-4">{t('dock.worktree')}</h3>
-            <div className="text-[var(--fg-muted)] text-sm text-center py-8">
-              Worktree details (Task 5+)
-            </div>
-          </div>
-        )
-      default:
-        return null
-    }
-  }
-
   return (
     <aside
       className={cn(
-        'flex flex-col',
-        'bg-[var(--bg-elevated)] border-l border-[var(--border)]',
-        'transition-all duration-200',
-        'fixed right-0 top-0 z-10 h-full',
-        'overflow-hidden'
+        'h-full flex bg-[var(--bg-base)] border-l border-[var(--border)]'
       )}
-      style={{ width: `${width}px` }}
-      aria-label={t('dock.preview')}
+      style={{ width }}
+      role="complementary"
+      aria-label={t('dock.ariaLabel')}
     >
-      <div className="flex flex-col h-full">
-        <div
-          className={cn(
-            'w-1 cursor-col-resize bg-transparent hover:bg-[var(--accent-muted)] transition-colors',
-            isResizing && 'bg-[var(--accent-muted)]'
-          )}
-          style={{ minWidth: '4px', maxWidth: '8px' }}
-          onMouseDown={handleResizeMouseDown}
-          aria-label="Resize dock"
-          role="separator"
-          tabIndex={0}
-        />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border)]">
-            <div className="flex items-center gap-1 flex-1" role="tablist" aria-label="Dock tabs">
-              {DOCK_TABS.map(({ id, icon, labelKey }) => (
-                <button
-                  key={id}
-                  onClick={() => setDockTab(id)}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm',
-                    'transition-colors duration-150',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
-                    dockTab === id
-                      ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
-                      : 'text-[var(--fg-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--fg-primary)]'
-                  )}
-                  aria-label={t(labelKey)}
-                  aria-selected={dockTab === id}
-                  role="tab"
-                  title={t(labelKey)}
-                >
-                  {icon}
-                  <span className="hidden sm:inline">{t(labelKey)}</span>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={toggleDock}
-              className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] text-[var(--fg-secondary)] transition-colors"
-              aria-label={t('common.collapse')}
-              title={t('common.collapse')}
-            >
-              <ChevronRight size={16} />
-            </button>
+      <div
+        className={cn(
+          'w-1 h-full cursor-col-resize select-none touch-none shrink-0',
+          'hover:bg-[var(--accent-muted)] focus:outline-none',
+          'focus-visible:ring-2 focus-visible:ring-[var(--accent)]'
+        )}
+        onMouseDown={handleResizeMouseDown}
+        onKeyDown={handleResizeKeyDown}
+        aria-label={t('dock.resize')}
+        aria-orientation="vertical"
+        aria-valuenow={dockWidth}
+        role="separator"
+        tabIndex={0}
+      >
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="w-px h-8 bg-[var(--border)]" />
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex items-center justify-between p-2 border-b border-[var(--border)] bg-[var(--bg-elevated)]">
+          <div className="flex items-center gap-1" role="tablist" aria-label={t('dock.tabs')}>
+            {DOCK_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setDockTab(tab.id)}
+                className={cn(
+                  'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                  'hover:bg-[var(--bg-hover)]',
+                  dockTab === tab.id
+                    ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                    : 'text-[var(--fg-secondary)] hover:text-[var(--fg-primary)]'
+                )}
+                role="tab"
+                aria-selected={dockTab === tab.id}
+                aria-controls={`dock-panel-${tab.id}`}
+                id={`dock-tab-${tab.id}`}
+              >
+                {tab.icon}
+                <span>{t(tab.labelKey)}</span>
+              </button>
+            ))}
           </div>
-          <div className="flex-1 overflow-hidden">
-            {renderTabContent()}
-          </div>
+          <button
+            onClick={toggleDock}
+            className={cn(
+              'p-1.5 rounded-lg transition-colors',
+              'text-[var(--fg-secondary)] hover:text-[var(--fg-primary)]',
+              'hover:bg-[var(--bg-hover)]'
+            )}
+            aria-label={t('dock.collapse')}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/*
+          Every tab stays mounted; inactive panels are hidden. Unmounting the
+          active tab on switch would run `useTerminal`'s cleanup (pty_kill) and
+          kill the shell on every tab change.
+        */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {DOCK_TABS.map((tab) => {
+            const active = dockTab === tab.id
+            return (
+              <div
+                key={tab.id === 'editor' ? `editor-${editorKey ?? 'none'}` : tab.id}
+                id={`dock-panel-${tab.id}`}
+                role="tabpanel"
+                aria-labelledby={`dock-tab-${tab.id}`}
+                aria-hidden={!active}
+                hidden={!active}
+                className={cn('flex-1 overflow-hidden', !active && 'hidden')}
+              >
+                {renderDockTab(tab.id, {
+                  editorValue,
+                  onEditorChange: handleEditorChange,
+                  onEditorSave: handleEditorSave,
+                  onEditorCancel,
+                })}
+              </div>
+            )
+          })}
         </div>
       </div>
     </aside>

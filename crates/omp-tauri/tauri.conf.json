@@ -4,11 +4,13 @@
   "version": "0.1.0",
   "identifier": "dev.omp.x",
   "build": {
-    "frontendDist": "../../../src",
+    "frontendDist": "../../dist",
+    "devUrl": "http://localhost:1420",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "omp-X",
@@ -21,21 +23,27 @@
         "fullscreen": false,
         "decorations": true,
         "transparent": false,
-        "visible": true
+        "visible": true,
+        "label": "main"
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420 http://localhost:1420; font-src 'self' data:; frame-src http: https:"
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
   },
   "plugins": {
-    "store": {
-      "autoSave": true
-    }
+    "store": {}
   }
 }

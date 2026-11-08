@@ -4,6 +4,8 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  clearScreen: false,
+  envPrefix: 'VITE_',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -17,7 +19,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../crates/omp-tauri/src',
+    outDir: 'dist',
     emptyOutDir: true,
   },
 })
