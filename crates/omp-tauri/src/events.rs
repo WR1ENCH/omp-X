@@ -75,6 +75,10 @@ pub enum FrontendEvent {
         status: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         data: Option<Value>,
+        /// The real wire ends a turn with `prompt_result { sessionSettled: true }`
+        /// and does not always emit a separate `session_settled` event.
+        #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+        session_settled: bool,
     },
     AvailableCommands {
         commands: Vec<Value>,

@@ -132,6 +132,18 @@ fn pick_value(value: &Value, keys: &[&str]) -> Option<Value> {
     None
 }
 
+/// The real wire signals tool failure with `isError` rather than a `status`
+/// string, so a missing status must not read as success.
+fn pick_failed(value: &Value) -> bool {
+    if let Some(b) = value.get("isError").and_then(Value::as_bool) {
+        return b;
+    }
+    if let Some(s) = value.get("is_error").and_then(Value::as_bool) {
+        return s;
+    }
+    false
+}
+
 fn map_agent_event(event: AgentEvent) -> Option<FrontendEvent> {
     match event {
         AgentEvent::AgentStart(_) => Some(FrontendEvent::AgentStart),
@@ -166,6 +178,10 @@ fn map_agent_event(event: AgentEvent) -> Option<FrontendEvent> {
             success: v.get("status").and_then(Value::as_str) != Some("failed"),
             status: pick_string(&v, &["status"]),
             data: v.get("data").cloned(),
+            session_settled: v
+                .get("sessionSettled")
+                .and_then(Value::as_bool)
+                .unwrap_or_default(),
         }),
         AgentEvent::SessionSettled(_) => Some(FrontendEvent::SessionSettled),
         AgentEvent::AvailableCommandsUpdate { commands } => {
@@ -183,7 +199,11 @@ fn map_agent_event(event: AgentEvent) -> Option<FrontendEvent> {
                 .unwrap_or_default(),
             name: pick_string(&v, &["name", "toolName", "tool_name", "tool", "title"])
                 .unwrap_or_else(|| "unknown".to_string()),
-            status: pick_string(&v, &["status"]).unwrap_or_else(|| "ok".to_string()),
+            status: if pick_failed(&v) {
+                "error".to_string()
+            } else {
+                pick_string(&v, &["status"]).unwrap_or_else(|| "ok".to_string())
+            },
             result: pick_value(&v, &["result", "output", "data"]),
             error: pick_string(&v, &["error"]),
         }),
@@ -995,6 +1015,61 @@ mod tests {
         let diff = compute_unified_diff("a\nb\n", "x\ny\n");
         assert!(diff.contains("-a") && diff.contains("-b"));
         assert!(diff.contains("+x") && diff.contains("+y"));
+    }
+
+    /// The real wire signals tool failure with `isError`, not a status string.
+    #[test]
+    fn tool_execution_end_is_error_maps_to_error_status() {
+        let event = AgentEvent::ToolExecutionEnd(serde_json::json!({
+            "toolCallId": "call_1",
+            "toolName": "bash",
+            "isError": true,
+            "result": { "content": [{ "type": "text", "text": "boom" }] }
+        }));
+        match map_host_event(SessionEvent::Inbound(Inbound::Event(event))) {
+            Some(FrontendEvent::ToolExecutionEnd { status, tool_call_id, .. }) => {
+                assert_eq!(status, "error");
+                assert_eq!(tool_call_id, "call_1");
+            }
+            other => panic!("expected ToolExecutionEnd, got {other:?}"),
+        }
+    }
+
+    /// A successful real-wire end frame (no status field) must read as ok.
+    #[test]
+    fn tool_execution_end_without_status_defaults_to_ok() {
+        let event = AgentEvent::ToolExecutionEnd(serde_json::json!({
+            "toolCallId": "call_2",
+            "toolName": "bash",
+            "isError": false,
+            "result": { "content": [] }
+        }));
+        match map_host_event(SessionEvent::Inbound(Inbound::Event(event))) {
+            Some(FrontendEvent::ToolExecutionEnd { status, .. }) => {
+                assert_eq!(status, "ok");
+            }
+            other => panic!("expected ToolExecutionEnd, got {other:?}"),
+        }
+    }
+
+    /// The real wire ends a turn with prompt_result.sessionSettled and may not
+    /// emit a standalone session_settled frame; the flag must survive mapping.
+    #[test]
+    fn prompt_result_carries_session_settled() {
+        let event = AgentEvent::PromptResult(serde_json::json!({
+            "agentInvoked": true,
+            "status": "completed",
+            "sessionSettled": true,
+            "type": "prompt_result"
+        }));
+        match map_host_event(SessionEvent::Inbound(Inbound::Event(event))) {
+            Some(FrontendEvent::PromptResult { success, status, session_settled, .. }) => {
+                assert!(success, "completed must map to success");
+                assert_eq!(status.as_deref(), Some("completed"));
+                assert!(session_settled);
+            }
+            other => panic!("expected PromptResult, got {other:?}"),
+        }
     }
 
     #[test]

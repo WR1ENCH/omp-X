@@ -66,6 +66,27 @@ const MOCK_SCRIPT = () => {
         setTimeout(() => {
           emit('omp://event', { sessionId: sid, event: { type: 'agent_start' } })
           emit('omp://event', { sessionId: sid, event: { type: 'turn_start' } })
+          // Real-wire tool frames (captured from oh-my-pi v18.4.3):
+          // tool_execution_start / tool_execution_end bracket every tool call.
+          emit('omp://event', {
+            sessionId: sid,
+            event: {
+              type: 'tool_execution_start',
+              toolCallId: 'call_e2e_1',
+              name: 'bash',
+              args: { command: 'echo TOOL_OK >> probe.txt' },
+            },
+          })
+          emit('omp://event', {
+            sessionId: sid,
+            event: {
+              type: 'tool_execution_end',
+              toolCallId: 'call_e2e_1',
+              name: 'bash',
+              status: 'ok',
+              result: { content: [{ type: 'text', text: '(no output)' }] },
+            },
+          })
           emit('omp://event', {
             sessionId: sid,
             event: { type: 'message_start', role: 'assistant', messageId: 'm1' },
@@ -160,6 +181,10 @@ test.describe('omp smoke', () => {
     const assistant = page.locator('[data-role="assistant"]').first()
     await expect(assistant).toBeVisible({ timeout: 15000 })
     await expect(assistant).toContainText('Hello from the mock backend', { timeout: 15000 })
+
+    // Real-wire tool frames render a completed tool card.
+    await expect(page.getByText('bash', { exact: true }).first()).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText('Done').first()).toBeVisible({ timeout: 15000 })
 
     // session_settled re-enables the composer.
     await expect(composer).toBeEnabled({ timeout: 15000 })

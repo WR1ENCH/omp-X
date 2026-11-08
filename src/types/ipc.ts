@@ -98,6 +98,7 @@ export interface FrontendEvent {
   success?: boolean
   status?: string
   data?: unknown
+  sessionSettled?: boolean
   commands?: unknown[]
   models?: ModelInfo[]
   toolCallId?: string

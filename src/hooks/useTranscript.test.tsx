@@ -308,6 +308,21 @@ describe('TranscriptProvider', () => {
     expect(seen).toHaveLength(1)
   })
 
+  // The real wire ends a turn with prompt_result.sessionSettled and may never
+  // emit a standalone session_settled frame.
+  it('prompt_result.sessionSettled stops streaming and dispatches omp:session-settled', async () => {
+    const provider = await setup('s1')
+    const seen: unknown[] = []
+    window.addEventListener('omp:session-settled', (e) => seen.push((e as CustomEvent).detail))
+
+    provider.emit(envelope('s1', event('message_start', { role: 'assistant', messageId: 'a1' })))
+    provider.emit(
+      envelope('s1', event('prompt_result', { success: true, status: 'completed', sessionSettled: true })),
+    )
+    expect(provider.latest()?.isStreaming).toBe(false)
+    expect(seen).toHaveLength(1)
+  })
+
   it('addUserMessage appends a user message', async () => {
     const provider = await setup('s1')
     act(() => provider.latest()?.addUserMessage('hello'))

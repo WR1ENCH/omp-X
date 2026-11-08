@@ -461,6 +461,12 @@ export function TranscriptProvider({
           return
         case 'prompt_result':
           setState((prev) => applyPromptResult(prev, event, sessionId))
+          // The real wire ends the turn inside prompt_result.sessionSettled;
+          // a standalone session_settled frame may never arrive.
+          if (event.sessionSettled) {
+            setState((prev) => ({ ...prev, isStreaming: false }))
+            window.dispatchEvent(new CustomEvent('omp:session-settled'))
+          }
           return
         case 'tool_execution_start':
           setState((prev) => applyToolExecutionStart(prev, event))

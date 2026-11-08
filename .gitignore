@@ -8,3 +8,4 @@ test-results
 .gtkdev-dl/
 .pw-browsers/
 crates/omp-tauri/gen/
+.fakehome/
