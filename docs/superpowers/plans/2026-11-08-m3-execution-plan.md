@@ -135,7 +135,12 @@
 
 **验收**: modal 显示倒计时;超时自动 cancel;session 切换清理不变。
 
+> **L1 解决 (2026-11-08)**: `InputModal` 亦获倒计时（同款 `requestDeadlines` + 250ms tick + belt-and-braces 效果），新增 `src/components/approval/InputModal.test.tsx` 3 个测试全绿。执行计划 T5 文件清单原仅列 `ApprovalModal.tsx`，现实现覆盖全部非 `editor` method，消除用户可见静默取消。
+
+> **L2 决策 (2026-11-08)**: 「可配置」保持 store-file 语义（`settings.json` → `approvalTimeoutMs`，数字/有限/>0），计划文字已明确只要求「从 settings/useStore 读」。本记录已把 key 显式记录在完成记录与计划中，满足最低可发现性；应用内设置项留待后续需求决定。
+
 ---
+
 
 ## Wave 3(依赖 Wave 1+2 全部完成)
 
