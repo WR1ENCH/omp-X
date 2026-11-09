@@ -1,0 +1,234 @@
+{
+  "app": {
+    "title": "omp-X"
+  },
+  "rail": {
+    "sessions": "Sessions",
+    "worktrees": "Worktrees",
+    "agents": "Agents",
+    "tools": "Tools",
+    "settings": "Settings",
+    "help": "Help",
+    "debug": "Debug",
+    "ariaLabel": "Primary"
+  },
+  "sidebar": {
+    "sessions": {
+      "title": "Sessions",
+      "empty": "No active sessions",
+      "new": "New Session"
+    },
+    "worktrees": {
+      "title": "Worktrees",
+      "empty": "No worktrees",
+      "create": "Create Worktree",
+      "delete": "Delete"
+    },
+    "agents": {
+      "title": "Agents",
+      "empty": "No agents configured"
+    },
+    "tools": {
+      "title": "Tools",
+      "empty": "No tools available"
+    },
+    "settings": {
+      "title": "Settings",
+      "general": "General",
+      "appearance": "Appearance",
+      "keyboard": "Keyboard",
+      "advanced": "Advanced"
+    },
+    "help": {
+      "title": "Help",
+      "documentation": "Documentation",
+      "shortcuts": "Keyboard Shortcuts",
+      "reportIssue": "Report Issue",
+      "about": "About"
+    },
+    "debug": {
+      "title": "Debug",
+      "logs": "Logs",
+      "inspect": "Inspect",
+      "clear": "Clear"
+    },
+    "resize": "Resize sidebar"
+  },
+  "dock": {
+    "preview": "Preview",
+    "terminal": "Terminal",
+    "diff": "Diff",
+    "worktree": "Worktree",
+    "editor": "Editor",
+    "ariaLabel": "Right dock",
+    "tabs": "Dock tabs",
+    "expand": "Expand dock",
+    "collapse": "Collapse dock",
+    "resize": "Resize dock",
+    "preview_group": {
+      "title": "Preview",
+      "url": "URL",
+      "placeholder": "Enter a URL",
+      "go": "Go",
+      "back": "Back",
+      "forward": "Forward",
+      "reload": "Reload",
+      "loading": "Loading…",
+      "error": "Could not load page",
+      "retry": "Retry",
+      "openExternal": "Open in browser",
+      "tauriOnly": "Preview requires the Tauri runtime",
+      "invalidUrl": "Enter a valid http or https URL",
+      "windowClosed": "Preview window closed",
+      "reopen": "Reopen",
+      "closeWindow": "Close preview window",
+      "separateWindow": "The preview is running in a separate window"
+    },
+    "terminal_group": {
+      "ariaLabel": "Terminal",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "connecting": "Connecting…",
+      "copy": "Copy selection",
+      "paste": "Paste",
+      "clear": "Clear",
+      "disconnect": "Disconnect",
+      "connect": "Connect",
+      "error": "Terminal error",
+      "retry": "Retry",
+      "tauriOnly": "The terminal requires the Tauri runtime"
+    },
+    "diff_group": {
+      "noFile": "No file",
+      "search": "Search diff",
+      "searchPlaceholder": "Filter lines",
+      "clear": "Clear diff",
+      "error": "Diff error",
+      "emptyState": "No diff loaded",
+      "emptyHint": "Open a file change to see a diff.",
+      "moreHunks": "{count} more hunks",
+      "added": "added",
+      "removed": "removed",
+      "hunks": "hunks",
+      "linesHidden": "+{count} lines hidden",
+      "showMore": "Show {count} more hunks",
+      "toggleHunk": "Toggle hunk",
+      "compare": "Compare text",
+      "oldContent": "Original",
+      "newContent": "Modified",
+      "compareAction": "Compare"
+    },
+    "worktree_group": {
+      "title": "Worktrees",
+      "add": "Add",
+      "refresh": "Refresh",
+      "prune": "Prune",
+      "createNew": "New worktree",
+      "path": "Path",
+      "pathPlaceholder": "../my-worktree",
+      "branch": "Branch",
+      "branchPlaceholder": "feature/x",
+      "baseBranch": "Base branch",
+      "baseBranchPlaceholder": "main",
+      "requiredFields": "Path and branch are required",
+      "creating": "Creating…",
+      "create": "Create",
+      "createFirst": "Create worktree",
+      "emptyState": "No worktrees",
+      "emptyHint": "Create a worktree to isolate a change.",
+      "detached": "detached",
+      "bare": "bare",
+      "locked": "locked",
+      "prunable": "prunable",
+      "copyPath": "Copy path",
+      "openFolder": "Open folder",
+      "remove": "Remove",
+      "removing": "Removing…",
+      "error": "Worktree error",
+      "retry": "Retry",
+      "noRepo": "No repository selected",
+      "noRepoHint": "Select a session to manage its worktrees.",
+      "tauriOnly": "Worktree management requires the Tauri runtime",
+      "confirmRemoveTitle": "Remove worktree?",
+      "confirmRemoveBody": "{path} will be deleted from disk. This cannot be undone.",
+      "confirmRemove": "Remove",
+      "cancelRemove": "Cancel",
+      "confirmPruneTitle": "Prune worktrees?",
+      "confirmPruneBody": "Git will remove stale worktree metadata. Your working directories are not deleted.",
+      "confirmPrune": "Prune"
+    },
+    "editor_group": {
+      "title": "Editor",
+      "hint": "Enter for a new line, Ctrl/Cmd+Enter to save",
+      "save": "Save",
+      "cancel": "Cancel",
+      "empty": "No editor request",
+      "emptyHint": "An editor request from the agent will appear here.",
+      "noHandler": "No save handler is wired up yet; the edited text will not be sent back."
+    }
+  },
+  "composer": {
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "attach": "Attach",
+    "model": "Model",
+    "slashCommands": "Slash Commands",
+    "queue": "Queue",
+    "stop": "Stop",
+    "removeAttachment": "Remove attachment",
+    "sendFailed": "Failed to send"
+  },
+  "tool": {
+    "viewMore": "View More",
+    "openFullOutput": "Open full output",
+    "copy": "Copy",
+    "copied": "Copied",
+    "arguments": "Arguments",
+    "result": "Result",
+    "error": "Error",
+    "statusRunning": "Running",
+    "statusFailed": "Failed",
+    "statusDone": "Done"
+  },
+  "model": {
+    "unavailable": "No models available"
+  },
+  "approval": {
+    "bashWarning": "Danger: this bash command will run on your machine. Review the full command before approving.",
+    "countdown": "Auto-cancel in {{seconds}}s",
+    "select": "Select Option",
+    "confirm": "Confirm Action",
+    "input": "Enter Value",
+    "editor": "Edit in Editor",
+    "approve": "Approve",
+    "deny": "Deny",
+    "cancel": "Cancel",
+    "save": "Save",
+    "details": "Details",
+    "noOptions": "No options provided",
+    "confirmPrompt": "Do you want to proceed?",
+    "editorHint": "Enter for a new line, Ctrl/Cmd+Enter to save",
+    "queued": "{{count}} more pending"
+  },
+  "toast": {
+    "info": "Info",
+    "warning": "Warning",
+    "error": "Error"
+  },
+  "status": {
+    "bar": "Status Bar"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  }
+}

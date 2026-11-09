@@ -1,0 +1,31 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions for the main omp-X window: session commands, worktree git operations, PTY, and diff computation.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:deny-emit",
+    "core:webview:allow-create-webview-window",
+    "store:default",
+    "allow-spawn-session",
+    "allow-send-prompt",
+    "allow-send-ui-response",
+    "allow-close-session",
+    "allow-abort",
+    "allow-list-sessions",
+    "allow-worktree-list",
+    "allow-worktree-create",
+    "allow-worktree-remove",
+    "allow-worktree-prune",
+    "allow-diff-compute",
+    "allow-pty-spawn",
+    "allow-pty-write",
+    "allow-pty-resize",
+    "allow-pty-kill",
+    "allow-pty-read"
+  ]
+}

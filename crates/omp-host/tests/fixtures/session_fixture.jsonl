@@ -1,0 +1,11 @@
+{"type":"ready","protocolVersion":1,"maxFrameBytes":1048576}
+{"type":"agent_start","sessionId":"test-session-123"}
+{"type":"turn_start","turnId":"turn-1"}
+{"type":"message_start","messageId":"msg-1","message":{"role":"assistant"}}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Hello"}}
+{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":" world"}}
+{"type":"message_end","messageId":"msg-1"}
+{"type":"turn_end","turnId":"turn-1"}
+{"type":"agent_end","sessionId":"test-session-123"}
+{"type":"prompt_result","status":"success","data":{"text":"Hello world"}}
+{"type":"session_settled"}
